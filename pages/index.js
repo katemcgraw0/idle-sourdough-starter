@@ -239,9 +239,14 @@ export default function Home() {
   return (
     <div className={`${pressStart2P.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 ${pressStart2P.className}`}>
       <main className="flex flex-col gap-8 row-start-2 items-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4 text-center">
-          IDLE SOURDOUGH STARTER
-        </h1>
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            IDLE SOURDOUGH STARTER
+          </h1>
+          <p className="text-sm text-gray-600">
+            Feed (Click) Your Starter to earn points!
+          </p>
+        </div>
         
         <div className="flex gap-12 p-6 bg-white rounded-xl shadow-md border border-gray-200 mx-auto">
           <div className="flex flex-col items-center">
