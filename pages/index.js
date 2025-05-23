@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
+import { useState, useEffect } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -11,103 +12,267 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              pages/index.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+const pressStart2P = Press_Start_2P({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-press-start',
+});
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+export default function Home() {
+  const [points, setPoints] = useState(0);
+  const [chefs, setChefs] = useState(0);
+  const [loaves, setLoaves] = useState(0);
+  const [jarState, setJarState] = useState(0);
+  const [floatingPoints, setFloatingPoints] = useState([]);
+  const [starterLevel, setStarterLevel] = useState(1);
+
+  const jarImages = [
+    "/JarEmpty.png",
+    // "/Jar1.png",
+    "/Jar2.png",
+    "/Jar3.png",
+    "/JarFull.png"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (chefs > 0) {
+        setPoints(prev => prev + chefs);
+        
+        // Add one floating point indicator showing total points from all chefs
+        const id = Date.now();
+        const xOffset = Math.random() * 40 - 20;
+        setFloatingPoints(prev => [...prev, { 
+          id, 
+          xOffset,
+          isChefPoint: true,  // This marks it as a chef point
+          value: chefs 
+        }]);
+        
+        setTimeout(() => {
+          setFloatingPoints(prev => prev.filter(point => point.id !== id));
+        }, 1000);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [chefs]);
+
+  const handleJarClick = () => {
+    const pointsToAdd = starterLevel;
+    setPoints(points + pointsToAdd);
+    setJarState((prevState) => (prevState + 1) % jarImages.length);
+    
+    const id = Date.now();
+    const xOffset = Math.random() * 40 - 20;
+    setFloatingPoints(prev => [...prev, { 
+      id, 
+      xOffset,
+      value: pointsToAdd
+    }]);
+    
+    setTimeout(() => {
+      setFloatingPoints(prev => prev.filter(point => point.id !== id));
+    }, 1000);
+  };
+
+  const handleBuyChef = () => {
+    if (points >= 50) {
+      setPoints(points - 50);
+      setChefs(chefs + 1);
+    }
+  };
+
+  const handleBakeLoaf = () => {
+    if (points >= 200) {
+      setPoints(points - 200);
+      setLoaves(loaves + 1);
+    }
+  };
+
+  const handleUpgradeStarter = () => {
+    if (loaves >= 10) {
+      setLoaves(loaves - 10);
+      setStarterLevel(prev => prev + 1);
+    }
+  };
+
+  return (
+    <div className={`${pressStart2P.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 ${pressStart2P.className}`}>
+      <main className="flex flex-col gap-8 row-start-2 items-center">
+        <h1 className="text-4xl font-bold text-gray-800 mb-4 text-center">
+          IDLE SOURDOUGH STARTER
+        </h1>
+        
+        <div className="flex gap-12 p-6 bg-white rounded-xl shadow-md border border-gray-200 mx-auto">
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-2xl text-blue-600">{points}</span>
+            <span className="text-sm font-medium text-gray-700 mt-1">Points</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-2xl text-green-600">{chefs}</span>
+            <span className="text-sm font-medium text-gray-700 mt-1">Chefs</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-2xl text-amber-600">{loaves}</span>
+            <span className="text-sm font-medium text-gray-700 mt-1">Loaves</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8 items-center">
+          <div className="cursor-pointer hover:scale-105 transition-transform w-[200px] h-[200px] relative" onClick={handleJarClick}>
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src={jarImages[jarState]}
+              alt="Clickable Jar"
+              width={200}
+              height={200}
+              priority
+              style={{
+                objectFit: 'contain',
+                width: '100%',
+                height: '100%',
+                maxWidth: '160px',
+                margin: '0 auto'
+              }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {floatingPoints.map(point => !point.isChefPoint && (
+              <div
+                key={point.id}
+                className="absolute top-0 left-1/2 text-green-600 font-bold pointer-events-none animate-float-up"
+                style={{
+                  transform: `translateX(${point.xOffset}px)`,
+                }}
+              >
+                +{point.value || 1}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col items-center gap-4 relative">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-lg">Buy a Chef</h2>
+                <div className="group relative">
+                  <button className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm hover:bg-gray-300">
+                    i
+                  </button>
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
+                    Chefs cost 50 points each. Every chef automatically generates 1 point every 5 seconds without clicking.
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-[100px] h-[100px] relative">
+                <Image
+                  src="/chef.png"
+                  alt="Chef"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
+              <button 
+                onClick={handleBuyChef}
+                disabled={points < 50}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors
+                  ${points >= 50 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Buy (50 points)
+              </button>
+
+              {floatingPoints.map(point => point.isChefPoint && (
+                <div
+                  key={point.id}
+                  className="absolute top-1/2 left-1/2 text-green-600 font-bold pointer-events-none animate-float-up"
+                  style={{
+                    transform: `translateX(${point.xOffset}px)`,
+                  }}
+                >
+                  +{chefs}
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-lg">Bake a Loaf</h2>
+                <div className="group relative">
+                  <button className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm hover:bg-gray-300">
+                    i
+                  </button>
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
+                    Bake a fresh sourdough loaf for 200 points. Each loaf you bake helps you perfect your recipe, and once you have made 10 loaves, you can upgrade your starter and get more points for feeding it!
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-[100px] h-[100px] relative">
+                <Image
+                  src="/loaf.png"
+                  alt="Sourdough Loaf"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
+              <button 
+                onClick={handleBakeLoaf}
+                disabled={points < 200}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors
+                  ${points >= 200 
+                    ? 'bg-amber-600 text-white hover:bg-amber-700' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Bake (200 points)
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-lg">Upgrade Starter</h2>
+                <div className="group relative">
+                  <button className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm hover:bg-gray-300">
+                    i
+                  </button>
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
+                    Upgrade your starter for 10 loaves. Each upgrade increases points per click by 1. Current level: {starterLevel}
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-[100px] h-[100px] relative">
+                <Image
+                  src="/upgrade.png"
+                  alt="Starter Upgrade"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
+              <button 
+                onClick={handleUpgradeStarter}
+                disabled={loaves < 10}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors
+                  ${loaves >= 10 
+                    ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Upgrade (10 loaves)
+              </button>
+            </div>
+          </div>
         </div>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      
       </footer>
     </div>
   );
