@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import { useState, useEffect } from "react";
+import { supabase } from '../supabaseClient'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,28 +26,126 @@ export default function Home() {
   const [starterLevel, setStarterLevel] = useState(1);
   const [jarState, setJarState] = useState(0);
   const [floatingPoints, setFloatingPoints] = useState([]);
+  const [username, setUsername] = useState("");
+  const [userId, setUserId] = useState("");
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
-  // Load saved state on client-side only
-  useEffect(() => {
-    const saved = localStorage.getItem('sourdoughGame');
-    if (saved) {
-      const initialState = JSON.parse(saved);
-      setPoints(initialState.points);
-      setChefs(initialState.chefs);
-      setLoaves(initialState.loaves);
-      setStarterLevel(initialState.starterLevel);
+  // Load saved state if userId is provided
+  const loadSavedState = async (id) => {
+    const { data, error } = await supabase
+      .from('leaderboard')
+      .select('*')
+      .eq('user_id', parseInt(id))
+      .single();
+
+    if (error) {
+      console.error('Error loading saved state:', error);
+      return;
     }
-  }, []);
 
-  // Save game state
+    if (data) {
+      setPoints(data.points);
+      setChefs(data.chefs);
+      setLoaves(data.loaves);
+      setStarterLevel(data.starter_level);
+      setUsername(data.username);
+      setUserId(data.user_id);
+    }
+  };
+
+  // Handle restore progress
+  const handleRestore = async (e) => {
+    e.preventDefault();
+    if (!userId) return;
+    await loadSavedState(userId);
+  };
+
+  // Handle save to leaderboard
+  const handleSaveToLeaderboard = async () => {
+    if (!username) {
+      setSaveMessage("Please enter a username first!");
+      return;
+    }
+
+    try {
+      // Generate a random 6-digit user_id
+      const newUserId = Math.floor(100000 + Math.random() * 900000);
+      
+      const { error } = await supabase
+        .from('leaderboard')
+        .insert({ 
+          user_id: newUserId,
+          username,
+          points,
+          chefs,
+          loaves,
+          starter_level: starterLevel,
+        });
+
+      if (error) throw error;
+      
+      // Fetch updated leaderboard
+      const { data: updatedLeaderboard, error: fetchError } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .order('starter_level', { ascending: false })
+        .order('loaves', { ascending: false })
+        .order('chefs', { ascending: false })
+        .order('points', { ascending: false })
+        .limit(10);
+
+      if (!fetchError && updatedLeaderboard) {
+        setLeaderboard(updatedLeaderboard);
+      }
+      
+      setUserId(newUserId);
+      setSaveMessage(`Game saved! Your ID is: ${newUserId}. Save this to restore your progress later!`);
+      setShowSaveModal(true);
+      setShowLeaderboard(true); // Show leaderboard after saving
+    } catch (error) {
+      console.error('Failed to save score:', error);
+      setSaveMessage("Failed to save. Please try again.");
+    }
+  };
+
+  // Load leaderboard data
   useEffect(() => {
-    localStorage.setItem('sourdoughGame', JSON.stringify({
-      points,
-      chefs,
-      loaves,
-      starterLevel
-    }));
-  }, [points, chefs, loaves, starterLevel]);
+    const fetchLeaderboard = async () => {
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .order('starter_level', { ascending: false })
+        .order('loaves', { ascending: false })
+        .order('chefs', { ascending: false })
+        .order('points', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching leaderboard:', error);
+        return;
+      }
+
+      setLeaderboard(data);
+    };
+
+    fetchLeaderboard();
+    
+    // Set up real-time subscription
+    const leaderboardSubscription = supabase
+      .channel('leaderboard_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'leaderboard' }, 
+        fetchLeaderboard
+      )
+      .subscribe();
+
+    return () => {
+      leaderboardSubscription.unsubscribe();
+    };
+  }, []);
 
   const jarImages = [
     "/JarEmpty.png",
@@ -291,6 +390,115 @@ export default function Home() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Save/Restore UI */}
+        <div className="mt-8 flex flex-col items-center gap-4">
+          {/* Restore Progress Form */}
+          <form onSubmit={handleRestore} className="flex gap-2">
+            <input
+              type="number"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="Enter your ID"
+              className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            >
+              Restore Progress
+            </button>
+          </form>
+
+          {/* Save to Leaderboard UI */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter username"
+              className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleSaveToLeaderboard}
+              className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+            >
+              Save to Leaderboard
+            </button>
+          </div>
+
+          {/* Save Message Modal */}
+          {showSaveModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl p-6 max-w-md">
+                <p className="text-center mb-4">{saveMessage}</p>
+                <button
+                  onClick={() => setShowSaveModal(false)}
+                  className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Got it!
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Leaderboard Toggle */}
+          <button
+            onClick={() => setShowLeaderboard(!showLeaderboard)}
+            className="text-blue-600 hover:underline"
+          >
+            {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
+          </button>
+
+          {/* Leaderboard Display */}
+          {showLeaderboard && (
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full max-w-2xl">
+              <h2 className="text-xl font-bold mb-4 text-center">Leaderboard</h2>
+              <div className="space-y-3">
+                {leaderboard.map((entry, index) => (
+                  <div 
+                    key={entry.user_id} 
+                    className={`flex flex-col sm:flex-row justify-between items-center p-3 sm:p-4 rounded-lg transition-colors
+                      ${index === 0 ? 'bg-amber-50' : 
+                        index === 1 ? 'bg-gray-50' : 
+                        index === 2 ? 'bg-orange-50' : 
+                        'hover:bg-gray-50'}`}
+                  >
+                    <div className="flex items-center gap-4 w-full sm:w-auto justify-center sm:justify-start mb-2 sm:mb-0">
+                      <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm
+                        ${index === 0 ? 'bg-amber-200 text-amber-800' :
+                          index === 1 ? 'bg-gray-200 text-gray-800' :
+                          index === 2 ? 'bg-orange-200 text-orange-800' :
+                          'bg-gray-100 text-gray-600'}`}
+                      >
+                        {index + 1}
+                      </span>
+                      <span className="font-medium text-base sm:text-lg">{entry.username}</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-8 text-sm w-full sm:w-auto">
+                      <div className="flex flex-col items-center sm:items-end mb-2 sm:mb-0">
+                        <span className="text-purple-600 font-bold text-base sm:text-lg">Lvl {entry.starter_level}</span>
+                        <span className="text-gray-500 text-xs">starter</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end mb-2 sm:mb-0">
+                        <span className="text-amber-600 font-bold text-base sm:text-lg">{entry.loaves}</span>
+                        <span className="text-gray-500 text-xs">loaves</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-green-600 font-bold text-base sm:text-lg">{entry.chefs}</span>
+                        <span className="text-gray-500 text-xs">chefs</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-blue-600 font-bold text-base sm:text-lg">{entry.points}</span>
+                        <span className="text-gray-500 text-xs">points</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
