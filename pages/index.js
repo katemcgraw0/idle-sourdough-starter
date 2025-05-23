@@ -248,18 +248,22 @@ export default function Home() {
           </p>
         </div>
         
-        <div className="flex gap-12 p-6 bg-white rounded-xl shadow-md border border-gray-200 mx-auto">
+        <div className="flex gap-4 sm:gap-12 p-4 sm:p-6 bg-white rounded-xl shadow-md border border-gray-200 mx-auto">
           <div className="flex flex-col items-center">
-            <span className="font-bold text-2xl text-blue-600">{points}</span>
-            <span className="text-sm font-medium text-gray-700 mt-1">Points</span>
+            <span className="font-bold text-lg sm:text-2xl text-blue-600">{points}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Points</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="font-bold text-2xl text-green-600">{chefs}</span>
-            <span className="text-sm font-medium text-gray-700 mt-1">Chefs</span>
+            <span className="font-bold text-lg sm:text-2xl text-green-600">{chefs}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Chefs</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="font-bold text-2xl text-amber-600">{loaves}</span>
-            <span className="text-sm font-medium text-gray-700 mt-1">Loaves</span>
+            <span className="font-bold text-lg sm:text-2xl text-amber-600">{loaves}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Loaves</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-lg sm:text-2xl text-purple-600"> {starterLevel}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Lvl</span>
           </div>
         </div>
 
