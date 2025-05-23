@@ -48,7 +48,7 @@ export default function Home() {
     }
   }, [userId]);
 
-  // Load saved state if userId is provided
+  // Load saved state
   const loadSavedState = async (id) => {
     const { data, error } = await supabase
       .from('leaderboard')
@@ -65,6 +65,9 @@ export default function Home() {
       setPoints(data.points);
       setChefs(data.chefs);
       setLoaves(data.loaves);
+      setCinnamonLoaves(data.cinnamon_loaves || 0);
+      setHiringManagers(data.hiring_managers || 0);
+      setBakers(data.bakers || 0);
       setStarterLevel(data.starter_level);
       setUsername(data.username);
       setUserId(data.user_id);
@@ -86,7 +89,6 @@ export default function Home() {
     }
 
     try {
-      // Use existing userId from localStorage or generate new one
       const saveUserId = userId || Math.floor(100000 + Math.random() * 900000);
       
       const { error } = await supabase
@@ -97,6 +99,9 @@ export default function Home() {
           points,
           chefs,
           loaves,
+          cinnamon_loaves: cinnamonLoaves,
+          hiring_managers: hiringManagers,
+          bakers,
           starter_level: starterLevel,
         }, {
           onConflict: 'user_id'
