@@ -37,6 +37,9 @@ export default function Home() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [hiringManagers, setHiringManagers] = useState(0);
+  const [bakers, setBakers] = useState(0);
+  const [cinnamonLoaves, setCinnamonLoaves] = useState(0);
 
   // Update localStorage when userId changes
   useEffect(() => {
@@ -106,6 +109,9 @@ export default function Home() {
         .from('leaderboard')
         .select('*')
         .order('starter_level', { ascending: false })
+        .order('bakers', { ascending: false })
+        .order('hiring_managers', { ascending: false })
+        .order('cinnamon_loaves', { ascending: false })
         .order('loaves', { ascending: false })
         .order('chefs', { ascending: false })
         .order('points', { ascending: false })
@@ -136,6 +142,9 @@ export default function Home() {
         .from('leaderboard')
         .select('*')
         .order('starter_level', { ascending: false })
+        .order('bakers', { ascending: false })
+        .order('hiring_managers', { ascending: false })
+        .order('cinnamon_loaves', { ascending: false })
         .order('loaves', { ascending: false })
         .order('chefs', { ascending: false })
         .order('points', { ascending: false })
@@ -236,6 +245,39 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (hiringManagers > 0) {
+        setPoints(prev => {
+          if (prev >= 50) {
+            setChefs(prevChefs => prevChefs + 1);
+            return prev - 50;
+          }
+          return prev;
+        });
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [hiringManagers]);
+
+  const handleBuyHiringManager = () => {
+    if (points >= 5000) {
+      setPoints(points - 5000);
+      setHiringManagers(hiringManagers + 1);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (bakers > 0) {
+        setLoaves(prevLoaves => prevLoaves + bakers);
+      }
+    }, 20000); // 20 seconds
+
+    return () => clearInterval(interval);
+  }, [bakers]);
+
   return (
     <div className={`${pressStart2P.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 ${pressStart2P.className}`}>
       <main className="flex flex-col gap-8 row-start-2 items-center">
@@ -262,7 +304,19 @@ export default function Home() {
             <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Loaves</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="font-bold text-lg sm:text-2xl text-purple-600"> {starterLevel}</span>
+            <span className="font-bold text-lg sm:text-2xl text-orange-600">{cinnamonLoaves}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Twists</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-lg sm:text-2xl text-blue-600">{hiringManagers}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Managers</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-lg sm:text-2xl text-red-600">{bakers}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Bakers</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-lg sm:text-2xl text-purple-600">{starterLevel}</span>
             <span className="text-xs sm:text-sm font-medium text-gray-700 mt-1">Lvl</span>
           </div>
         </div>
@@ -383,13 +437,131 @@ export default function Home() {
 
             <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col items-center gap-4">
               <div className="flex items-center gap-2">
+                <h2 className="font-bold text-lg">Cinnamon Twist</h2>
+                <div className="group relative">
+                  <button className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm hover:bg-gray-300">
+                    i
+                  </button>
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
+                    Spend 2000 points to make a special cinnamon twist loaf.
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-[100px] h-[100px] relative">
+                <Image
+                  src="/cinnamon_loaves.png"
+                  alt="Cinnamon Twist Loaf"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
+              <button 
+                onClick={() => {
+                  if (points >= 2000) {
+                    setPoints(points - 2000);
+                    setCinnamonLoaves(cinnamonLoaves + 1);
+                  }
+                }}
+                disabled={points < 2000}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors
+                  ${points >= 2000 
+                    ? 'bg-orange-600 text-white hover:bg-orange-700' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Make (2000 points)
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-lg">Hire Manager</h2>
+                <div className="group relative">
+                  <button className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm hover:bg-gray-300">
+                    i
+                  </button>
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
+                    Hiring Managers cost 5000 points. Each manager automatically hires a new chef every 30 seconds if you have enough points (50 points per chef).
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-[100px] h-[100px] relative">
+                <Image
+                  src="/hiring_manager.png"
+                  alt="Hiring Manager"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
+              <button 
+                onClick={handleBuyHiringManager}
+                disabled={points < 5000}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors
+                  ${points >= 5000 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Buy (5000 points)
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-lg">Baker</h2>
+                <div className="group relative">
+                  <button className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm hover:bg-gray-300">
+                    i
+                  </button>
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
+                    Trade 500 chefs for a baker. Each baker automatically makes a loaf every 20 seconds.
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-[100px] h-[100px] relative">
+                <Image
+                  src="/baker.png"
+                  alt="Baker"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
+              <button 
+                onClick={() => {
+                  if (chefs >= 500) {
+                    setChefs(chefs - 500);
+                    setBakers(bakers + 1);
+                  }
+                }}
+                disabled={chefs < 500}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors
+                  ${chefs >= 500 
+                    ? 'bg-red-600 text-white hover:bg-red-700' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Trade (500 chefs)
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2">
                 <h2 className="font-bold text-lg">Upgrade Starter</h2>
                 <div className="group relative">
                   <button className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm hover:bg-gray-300">
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
-                    Upgrade your starter for 10 loaves. Each upgrade increases points per click by 1. Current level: {starterLevel}
+                    Level up your starter by trading 10 loaves and 5 cinnamon twists. Higher level starters earn more points per click.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -398,7 +570,7 @@ export default function Home() {
               <div className="w-[100px] h-[100px] relative">
                 <Image
                   src="/upgrade.png"
-                  alt="Starter Upgrade"
+                  alt="Sourdough Starter"
                   fill
                   className="object-contain"
                   priority
@@ -406,14 +578,20 @@ export default function Home() {
               </div>
 
               <button 
-                onClick={handleUpgradeStarter}
-                disabled={loaves < 10}
+                onClick={() => {
+                  if (loaves >= 10 && cinnamonLoaves >= 5) {
+                    setLoaves(loaves - 10);
+                    setCinnamonLoaves(cinnamonLoaves - 5);
+                    setStarterLevel(starterLevel + 1);
+                  }
+                }}
+                disabled={loaves < 10 || cinnamonLoaves < 5}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors
-                  ${loaves >= 10 
+                  ${loaves >= 10 && cinnamonLoaves >= 5
                     ? 'bg-purple-600 text-white hover:bg-purple-700' 
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
               >
-                Upgrade (10 loaves)
+                Upgrade (10 Loaves + 5 Twists)
               </button>
             </div>
           </div>
@@ -480,7 +658,7 @@ export default function Home() {
 
           {/* Leaderboard Display */}
           {showLeaderboard && (
-            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full max-w-2xl">
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full max-w-4xl">
               <h2 className="text-xl font-bold mb-4 text-center">Leaderboard</h2>
               <div className="space-y-3">
                 {leaderboard.map((entry, index) => (
@@ -513,22 +691,34 @@ export default function Home() {
                         )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-4 text-[10px] w-full sm:w-auto">
-                      <div className="flex flex-col items-center sm:items-end mb-2 sm:mb-0">
-                        <span className="text-purple-600">Lvl {entry.starter_level}</span>
-                        <span className="text-gray-500 text-[8px]">starter</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end mb-2 sm:mb-0">
-                        <span className="text-amber-600">{entry.loaves}</span>
-                        <span className="text-gray-500 text-[8px]">loaves</span>
+                    <div className="grid grid-cols-3 sm:flex gap-3 sm:gap-6 text-[10px] w-full sm:w-auto">
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-blue-600">{entry.points}</span>
+                        <span className="text-gray-500 text-[8px]">points</span>
                       </div>
                       <div className="flex flex-col items-center sm:items-end">
                         <span className="text-green-600">{entry.chefs}</span>
                         <span className="text-gray-500 text-[8px]">chefs</span>
                       </div>
                       <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-blue-600">{entry.points}</span>
-                        <span className="text-gray-500 text-[8px]">points</span>
+                        <span className="text-amber-600">{entry.loaves}</span>
+                        <span className="text-gray-500 text-[8px]">loaves</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-orange-600">{entry.cinnamon_loaves}</span>
+                        <span className="text-gray-500 text-[8px]">twists</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-blue-600">{entry.hiring_managers}</span>
+                        <span className="text-gray-500 text-[8px]">managers</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-red-600">{entry.bakers}</span>
+                        <span className="text-gray-500 text-[8px]">bakers</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-purple-600">Lvl {entry.starter_level}</span>
+                        <span className="text-gray-500 text-[8px]">starter</span>
                       </div>
                     </div>
                   </div>
