@@ -483,8 +483,8 @@ export default function Home() {
                         index === 2 ? 'bg-orange-50' : 
                         'hover:bg-gray-50'}`}
                   >
-                    <div className="flex items-center gap-4 w-full sm:w-auto justify-center sm:justify-start mb-2 sm:mb-0">
-                      <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-start mb-2 sm:mb-0">
+                      <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px]
                         ${index === 0 ? 'bg-amber-200 text-amber-800' :
                           index === 1 ? 'bg-gray-200 text-gray-800' :
                           index === 2 ? 'bg-orange-200 text-orange-800' :
@@ -493,33 +493,33 @@ export default function Home() {
                         {index + 1}
                       </span>
                       <div className="group relative">
-                        <span className="font-medium text-base sm:text-lg truncate max-w-[150px] block">
+                        <span className="text-[10px] sm:text-xs truncate max-w-[300px] block">
                           {entry.username}
                         </span>
                         {entry.username.length > 20 && (
-                          <div className="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-sm rounded px-2 py-1 whitespace-nowrap z-10">
+                          <div className="invisible group-hover:visible absolute left-0 -top-6 bg-gray-800 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap z-10">
                             {entry.username}
                             <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-8 text-sm w-full sm:w-auto">
+                    <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-4 text-[10px] w-full sm:w-auto">
                       <div className="flex flex-col items-center sm:items-end mb-2 sm:mb-0">
-                        <span className="text-purple-600 font-bold text-base sm:text-lg">Lvl {entry.starter_level}</span>
-                        <span className="text-gray-500 text-xs">starter</span>
+                        <span className="text-purple-600">Lvl {entry.starter_level}</span>
+                        <span className="text-gray-500 text-[8px]">starter</span>
                       </div>
                       <div className="flex flex-col items-center sm:items-end mb-2 sm:mb-0">
-                        <span className="text-amber-600 font-bold text-base sm:text-lg">{entry.loaves}</span>
-                        <span className="text-gray-500 text-xs">loaves</span>
+                        <span className="text-amber-600">{entry.loaves}</span>
+                        <span className="text-gray-500 text-[8px]">loaves</span>
                       </div>
                       <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-green-600 font-bold text-base sm:text-lg">{entry.chefs}</span>
-                        <span className="text-gray-500 text-xs">chefs</span>
+                        <span className="text-green-600">{entry.chefs}</span>
+                        <span className="text-gray-500 text-[8px]">chefs</span>
                       </div>
                       <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-blue-600 font-bold text-base sm:text-lg">{entry.points}</span>
-                        <span className="text-gray-500 text-xs">points</span>
+                        <span className="text-blue-600">{entry.points}</span>
+                        <span className="text-gray-500 text-[8px]">points</span>
                       </div>
                     </div>
                   </div>
