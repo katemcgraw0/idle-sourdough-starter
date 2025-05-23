@@ -272,7 +272,9 @@ export default function Home() {
         </div>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-      
+        <p className="text-gray-400 text-sm">
+          Happy Graduation Patty, love Kate
+        </p>
       </footer>
     </div>
   );
