@@ -305,7 +305,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg">
-                    Chefs cost 50 points each. Every chef automatically generates 1 point every 5 seconds without clicking.
+                    Chefs cost 50 points each. Every chef feeds your starter and automatically generates 1 point every 5 seconds without clicking.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
