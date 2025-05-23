@@ -22,9 +22,31 @@ export default function Home() {
   const [points, setPoints] = useState(0);
   const [chefs, setChefs] = useState(0);
   const [loaves, setLoaves] = useState(0);
+  const [starterLevel, setStarterLevel] = useState(1);
   const [jarState, setJarState] = useState(0);
   const [floatingPoints, setFloatingPoints] = useState([]);
-  const [starterLevel, setStarterLevel] = useState(1);
+
+  // Load saved state on client-side only
+  useEffect(() => {
+    const saved = localStorage.getItem('sourdoughGame');
+    if (saved) {
+      const initialState = JSON.parse(saved);
+      setPoints(initialState.points);
+      setChefs(initialState.chefs);
+      setLoaves(initialState.loaves);
+      setStarterLevel(initialState.starterLevel);
+    }
+  }, []);
+
+  // Save game state
+  useEffect(() => {
+    localStorage.setItem('sourdoughGame', JSON.stringify({
+      points,
+      chefs,
+      loaves,
+      starterLevel
+    }));
+  }, [points, chefs, loaves, starterLevel]);
 
   const jarImages = [
     "/JarEmpty.png",
