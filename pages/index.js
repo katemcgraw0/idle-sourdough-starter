@@ -27,11 +27,23 @@ export default function Home() {
   const [jarState, setJarState] = useState(0);
   const [floatingPoints, setFloatingPoints] = useState([]);
   const [username, setUsername] = useState("");
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sourdoughUserId') || "";
+    }
+    return "";
+  });
   const [leaderboard, setLeaderboard] = useState([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+
+  // Update localStorage when userId changes
+  useEffect(() => {
+    if (userId) {
+      localStorage.setItem('sourdoughUserId', userId);
+    }
+  }, [userId]);
 
   // Load saved state if userId is provided
   const loadSavedState = async (id) => {
@@ -71,18 +83,20 @@ export default function Home() {
     }
 
     try {
-      // Generate a random 6-digit user_id
-      const newUserId = Math.floor(100000 + Math.random() * 900000);
+      // Use existing userId from localStorage or generate new one
+      const saveUserId = userId || Math.floor(100000 + Math.random() * 900000);
       
       const { error } = await supabase
         .from('leaderboard')
-        .insert({ 
-          user_id: newUserId,
+        .upsert({ 
+          user_id: saveUserId,
           username,
           points,
           chefs,
           loaves,
           starter_level: starterLevel,
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
@@ -101,10 +115,14 @@ export default function Home() {
         setLeaderboard(updatedLeaderboard);
       }
       
-      setUserId(newUserId);
-      setSaveMessage(`Game saved! Your ID is: ${newUserId}. Save this to restore your progress later!`);
+      if (!userId) {
+        setUserId(saveUserId);
+        setSaveMessage(`Game saved! Your ID is: ${saveUserId}. Save this to restore your progress later!`);
+      } else {
+        setSaveMessage(`Game progress updated! (Your ID is: ${userId})`);
+      }
       setShowSaveModal(true);
-      setShowLeaderboard(true); // Show leaderboard after saving
+      setShowLeaderboard(true);
     } catch (error) {
       console.error('Failed to save score:', error);
       setSaveMessage("Failed to save. Please try again.");
@@ -474,7 +492,17 @@ export default function Home() {
                       >
                         {index + 1}
                       </span>
-                      <span className="font-medium text-base sm:text-lg">{entry.username}</span>
+                      <div className="group relative">
+                        <span className="font-medium text-base sm:text-lg truncate max-w-[150px] block">
+                          {entry.username}
+                        </span>
+                        {entry.username.length > 20 && (
+                          <div className="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-sm rounded px-2 py-1 whitespace-nowrap z-10">
+                            {entry.username}
+                            <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-8 text-sm w-full sm:w-auto">
                       <div className="flex flex-col items-center sm:items-end mb-2 sm:mb-0">
