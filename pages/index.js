@@ -318,7 +318,7 @@ export default function Home() {
     };
   };
 
-  // Update useEffect for stand automation to run every 5 minutes
+  // Update useEffect for stand automation to run every 1 minutes
   useEffect(() => {
     const interval = setInterval(() => {
       if (sourdoughStands > 0) {
@@ -328,6 +328,18 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [sourdoughStands]);
+
+    // Update useEffect for stand automation to run every other minutes
+    useEffect(() => {
+      const interval = setInterval(() => {
+        if (sourdoughStands > 0) {
+          setPoints(prevPoints => prevPoints + 100 * sourdoughStands);
+          setAllTimePoints(allTimePoints + 100 * sourdoughStands);
+        }
+      }, 120000); // 5 minutes (300,000 milliseconds)
+  
+      return () => clearInterval(interval);
+    }, [sourdoughStands]);
 
   return (
     <div className={`${pressStart2P.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 ${pressStart2P.className}`}>
@@ -660,7 +672,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand increases your level by 1 every minute. Each stand costs 10% more than the previous one.
+                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand increases your level by 1 every minute, and earns 100 points every other minute. Each stand costs 10% more than the previous one.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
