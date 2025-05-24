@@ -150,6 +150,7 @@ export default function Home() {
         .from('leaderboard')
         .select('*')
         .order('starter_level', { ascending: false })
+        .order('sourdough_stands', { ascending: false })
         .order('bakers', { ascending: false })
         .order('hiring_managers', { ascending: false })
         .order('cinnamon_loaves', { ascending: false })
@@ -232,9 +233,10 @@ export default function Home() {
     }, 1000);
   };
 
-  // Add a function to calculate chef cost
+  // Update the chef cost calculation function
   const calculateChefCost = (currentChefs) => {
-    return Math.floor(50 * Math.pow(1.2, currentChefs));
+    const cost = Math.floor(50 * Math.pow(1.2, currentChefs));
+    return Math.min(cost, 10000); // Cap at 10000 points
   };
 
   // Update the chef purchase button
@@ -312,11 +314,22 @@ export default function Home() {
   // Update cost calculation function
   const calculateStandCost = (currentStands) => {
     return {
-      managers: Math.floor(2 * Math.pow(2, currentStands)),
-      bakers: Math.floor(20 * Math.pow(2, currentStands)),
+      managers: Math.min(Math.floor(2 * Math.pow(2, currentStands)), 10000),
+      bakers: Math.min(Math.floor(20 * Math.pow(2, currentStands)), 20000),
       starterLevels: 100
     };
   };
+
+  // Update useEffect for stand automation to run every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (sourdoughStands > 0) {
+        setStarterLevel(prevLevel => prevLevel + sourdoughStands);
+      }
+    }, 300000); // 5 minutes (300,000 milliseconds)
+
+    return () => clearInterval(interval);
+  }, [sourdoughStands]);
 
   return (
     <div className={`${pressStart2P.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 ${pressStart2P.className}`}>
@@ -403,7 +416,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Hire chefs to automatically make points. Each chef costs 20% more than the previous chef.
+                    Hire chefs to automatically make points. Each chef costs 20% more than the previous chef (max 10000 points).
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -647,7 +660,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand costs double the previous one.
+                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand increases your level by 1 every 5 minutes. Each stand costs double the previous one.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -754,20 +767,20 @@ export default function Home() {
 
           {/* Leaderboard Display */}
           {showLeaderboard && (
-            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full max-w-5xl">
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full max-w-4xl">
               <h2 className="text-xl font-bold mb-4 text-center">Leaderboard</h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {leaderboard.map((entry, index) => (
                   <div 
                     key={entry.user_id} 
-                    className={`flex flex-col sm:flex-row justify-between items-center p-2 sm:p-3 rounded-lg transition-colors
+                    className={`flex flex-col sm:flex-row justify-between items-center p-3 sm:p-4 rounded-lg transition-colors
                       ${index === 0 ? 'bg-amber-50' : 
                         index === 1 ? 'bg-gray-50' : 
                         index === 2 ? 'bg-orange-50' : 
                         'hover:bg-gray-50'}`}
                   >
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start mb-2 sm:mb-0">
-                      <span className={`w-4 h-4 flex items-center justify-center rounded-full text-[8px]
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-start mb-2 sm:mb-0">
+                      <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px]
                         ${index === 0 ? 'bg-amber-200 text-amber-800' :
                           index === 1 ? 'bg-gray-200 text-gray-800' :
                           index === 2 ? 'bg-orange-200 text-orange-800' :
@@ -776,49 +789,49 @@ export default function Home() {
                         {index + 1}
                       </span>
                       <div className="group relative">
-                        <span className="text-[8px] sm:text-xs truncate max-w-[150px] block">
+                        <span className="text-[10px] sm:text-xs truncate max-w-[300px] block">
                           {entry.username}
                         </span>
-                        {entry.username.length > 15 && (
-                          <div className="invisible group-hover:visible absolute left-0 -top-6 bg-gray-800 text-white text-[8px] rounded px-2 py-1 whitespace-nowrap z-10">
+                        {entry.username.length > 20 && (
+                          <div className="invisible group-hover:visible absolute left-0 -top-6 bg-gray-800 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap z-10">
                             {entry.username}
                             <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 sm:flex gap-2 sm:gap-4 text-[8px] w-full sm:w-auto">
+                    <div className="grid grid-cols-3 sm:flex gap-3 sm:gap-6 text-[10px] w-full sm:w-auto">
                       <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-yellow-600">{entry.sourdough_stands || 0}</span>
-                        <span className="text-gray-500 text-[6px]">stands</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-purple-600">Lvl {entry.starter_level}</span>
-                        <span className="text-gray-500 text-[6px]">starter</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-red-600">{entry.bakers}</span>
-                        <span className="text-gray-500 text-[6px]">bakers</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-blue-600">{entry.hiring_managers}</span>
-                        <span className="text-gray-500 text-[6px]">mgrs</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-orange-600">{entry.cinnamon_loaves}</span>
-                        <span className="text-gray-500 text-[6px]">twists</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-amber-600">{entry.loaves}</span>
-                        <span className="text-gray-500 text-[6px]">loaves</span>
+                        <span className="text-blue-600">{entry.points}</span>
+                        <span className="text-gray-500 text-[8px]">points</span>
                       </div>
                       <div className="flex flex-col items-center sm:items-end">
                         <span className="text-green-600">{entry.chefs}</span>
-                        <span className="text-gray-500 text-[6px]">chefs</span>
+                        <span className="text-gray-500 text-[8px]">chefs</span>
                       </div>
                       <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-blue-600">{entry.points}</span>
-                        <span className="text-gray-500 text-[6px]">points</span>
+                        <span className="text-amber-600">{entry.loaves}</span>
+                        <span className="text-gray-500 text-[8px]">loaves</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-orange-600">{entry.cinnamon_loaves}</span>
+                        <span className="text-gray-500 text-[8px]">twists</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-blue-600">{entry.hiring_managers}</span>
+                        <span className="text-gray-500 text-[8px]">managers</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-red-600">{entry.bakers}</span>
+                        <span className="text-gray-500 text-[8px]">bakers</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-purple-600">Lvl {entry.starter_level}</span>
+                        <span className="text-gray-500 text-[8px]">starter</span>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-yellow-600">{entry.sourdough_stands}</span>
+                        <span className="text-gray-500 text-[8px]">stands</span>
                       </div>
                     </div>
                   </div>
