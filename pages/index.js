@@ -41,6 +41,7 @@ export default function Home() {
   const [bakers, setBakers] = useState(0);
   const [cinnamonLoaves, setCinnamonLoaves] = useState(0);
   const [sourdoughStands, setSourdoughStands] = useState(0);
+  const [allTimePoints, setAllTimePoints] = useState(0);
 
   // Update localStorage when userId changes
   useEffect(() => {
@@ -64,6 +65,7 @@ export default function Home() {
 
     if (data) {
       setPoints(data.points);
+      setAllTimePoints(data.all_time_pts || 0);
       setChefs(data.chefs);
       setLoaves(data.loaves);
       setCinnamonLoaves(data.cinnamon_loaves || 0);
@@ -99,13 +101,14 @@ export default function Home() {
           user_id: saveUserId,
           username,
           points,
+          all_time_pts: allTimePoints,
           chefs,
           loaves,
           cinnamon_loaves: cinnamonLoaves,
           hiring_managers: hiringManagers,
           bakers,
           starter_level: starterLevel,
-          sourdough_stands: sourdoughStands,
+          sourdough_stands: sourdoughStands
         }, {
           onConflict: 'user_id'
         });
@@ -149,14 +152,7 @@ export default function Home() {
       const { data, error } = await supabase
         .from('leaderboard')
         .select('*')
-        .order('starter_level', { ascending: false })
-        .order('sourdough_stands', { ascending: false })
-        .order('bakers', { ascending: false })
-        .order('hiring_managers', { ascending: false })
-        .order('cinnamon_loaves', { ascending: false })
-        .order('loaves', { ascending: false })
-        .order('chefs', { ascending: false })
-        .order('points', { ascending: false })
+        .order('all_time_pts', { ascending: false })
         .limit(10);
 
       if (error) {
@@ -195,6 +191,7 @@ export default function Home() {
     const interval = setInterval(() => {
       if (chefs > 0) {
         setPoints(prev => prev + chefs);
+        setAllTimePoints(allTimePoints + chefs);
         
         // Add one floating point indicator showing total points from all chefs
         const id = Date.now();
@@ -218,6 +215,7 @@ export default function Home() {
   const handleJarClick = () => {
     const pointsToAdd = starterLevel;
     setPoints(points + pointsToAdd);
+    setAllTimePoints(allTimePoints + pointsToAdd);
     setJarState((prevState) => (prevState + 1) % jarImages.length);
     
     const id = Date.now();
@@ -235,7 +233,7 @@ export default function Home() {
 
   // Update the chef cost calculation function
   const calculateChefCost = (currentChefs) => {
-    const cost = Math.floor(50 * Math.pow(1.2, currentChefs));
+    const cost = Math.floor(50 * Math.pow(1.05, currentChefs));
     return Math.min(cost, 10000); // Cap at 10000 points
   };
 
@@ -314,8 +312,8 @@ export default function Home() {
   // Update cost calculation function
   const calculateStandCost = (currentStands) => {
     return {
-      managers: Math.min(Math.floor(2 * Math.pow(2, currentStands)), 10000),
-      bakers: Math.min(Math.floor(20 * Math.pow(2, currentStands)), 20000),
+      managers: Math.min(Math.floor(2 * Math.pow(1.1, currentStands)), 10000),
+      bakers: Math.min(Math.floor(20 * Math.pow(1.1, currentStands)), 20000),
       starterLevels: 100
     };
   };
@@ -326,7 +324,7 @@ export default function Home() {
       if (sourdoughStands > 0) {
         setStarterLevel(prevLevel => prevLevel + sourdoughStands);
       }
-    }, 300000); // 5 minutes (300,000 milliseconds)
+    }, 60000); // 5 minutes (300,000 milliseconds)
 
     return () => clearInterval(interval);
   }, [sourdoughStands]);
@@ -342,7 +340,9 @@ export default function Home() {
             Feed (Click) Your Starter to earn points!
           </p>
         </div>
-        
+        <div className  =" text-blue-900">
+          All Time Score: {allTimePoints}
+        </div>
         <div className="flex gap-4 sm:gap-12 p-4 sm:p-6 bg-white rounded-xl shadow-md border border-gray-200 mx-auto">
           <div className="flex flex-col items-center">
             <span className="font-bold text-lg sm:text-2xl text-blue-600">{points}</span>
@@ -416,7 +416,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Hire chefs to automatically make points. Each chef costs 20% more than the previous chef (max 10000 points).
+                    Hire chefs to automatically feed your starter and make points. Each chef costs 5% more than the previous chef (max 10000 points).
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -464,7 +464,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Bake a fresh sourdough loaf for 200 points. Each loaf you bake helps you perfect your recipe, and once you have made 10 loaves, you can upgrade your starter and get more points for feeding it!
+                    Bake a fresh sourdough loaf for 200 points. Each loaf you bake helps you perfect your recipe.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -660,7 +660,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand increases your level by 1 every 5 minutes. Each stand costs double the previous one.
+                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand increases your level by 1 every minute. Each stand costs 10% more than the previous one.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -767,20 +767,20 @@ export default function Home() {
 
           {/* Leaderboard Display */}
           {showLeaderboard && (
-            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full max-w-4xl">
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full max-w-2xl">
               <h2 className="text-xl font-bold mb-4 text-center">Leaderboard</h2>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {leaderboard.map((entry, index) => (
                   <div 
                     key={entry.user_id} 
-                    className={`flex flex-col sm:flex-row justify-between items-center p-3 sm:p-4 rounded-lg transition-colors
+                    className={`flex justify-between items-center p-2 sm:p-3 rounded-lg transition-colors
                       ${index === 0 ? 'bg-amber-50' : 
                         index === 1 ? 'bg-gray-50' : 
                         index === 2 ? 'bg-orange-50' : 
                         'hover:bg-gray-50'}`}
                   >
-                    <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-start mb-2 sm:mb-0">
-                      <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px]
+                    <div className="flex items-center gap-2">
+                      <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xs
                         ${index === 0 ? 'bg-amber-200 text-amber-800' :
                           index === 1 ? 'bg-gray-200 text-gray-800' :
                           index === 2 ? 'bg-orange-200 text-orange-800' :
@@ -788,51 +788,10 @@ export default function Home() {
                       >
                         {index + 1}
                       </span>
-                      <div className="group relative">
-                        <span className="text-[10px] sm:text-xs truncate max-w-[300px] block">
-                          {entry.username}
-                        </span>
-                        {entry.username.length > 20 && (
-                          <div className="invisible group-hover:visible absolute left-0 -top-6 bg-gray-800 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap z-10">
-                            {entry.username}
-                            <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
-                          </div>
-                        )}
-                      </div>
+                      <span className="text-sm font-medium truncate max-w-[200px]">{entry.username}</span>
                     </div>
-                    <div className="grid grid-cols-3 sm:flex gap-3 sm:gap-6 text-[10px] w-full sm:w-auto">
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-blue-600">{entry.points}</span>
-                        <span className="text-gray-500 text-[8px]">points</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-green-600">{entry.chefs}</span>
-                        <span className="text-gray-500 text-[8px]">chefs</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-amber-600">{entry.loaves}</span>
-                        <span className="text-gray-500 text-[8px]">loaves</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-orange-600">{entry.cinnamon_loaves}</span>
-                        <span className="text-gray-500 text-[8px]">twists</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-blue-600">{entry.hiring_managers}</span>
-                        <span className="text-gray-500 text-[8px]">managers</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-red-600">{entry.bakers}</span>
-                        <span className="text-gray-500 text-[8px]">bakers</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-purple-600">Lvl {entry.starter_level}</span>
-                        <span className="text-gray-500 text-[8px]">starter</span>
-                      </div>
-                      <div className="flex flex-col items-center sm:items-end">
-                        <span className="text-yellow-600">{entry.sourdough_stands}</span>
-                        <span className="text-gray-500 text-[8px]">stands</span>
-                      </div>
+                    <div className="text-sm font-semibold text-blue-600">
+                      {entry.all_time_pts.toLocaleString()}
                     </div>
                   </div>
                 ))}
@@ -841,9 +800,12 @@ export default function Home() {
           )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+      <footer className="row-start-3 flex  flex-wrap items-center justify-center flex-col">
         <p className="text-gray-400 text-sm">
-          Happy Graduation Patty, love Kate
+          Happy Graduation Patty
+        </p>
+        <p className="text-gray-400 text-sm">
+           love, Kate
         </p>
       </footer>
     </div>
