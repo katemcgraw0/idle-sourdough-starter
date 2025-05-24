@@ -190,32 +190,43 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (chefs > 0) {
+        // Batch state updates together
         setPoints(prev => prev + chefs);
-        setAllTimePoints(allTimePoints + chefs);
-        
-        // Add one floating point indicator showing total points from all chefs
-        const id = Date.now();
-        const xOffset = Math.random() * 40 - 20;
-        setFloatingPoints(prev => [...prev, { 
-          id, 
-          xOffset,
-          isChefPoint: true,  // This marks it as a chef point
-          value: chefs 
-        }]);
-        
-        setTimeout(() => {
-          setFloatingPoints(prev => prev.filter(point => point.id !== id));
-        }, 1000);
+        setAllTimePoints(prevAllTime => prevAllTime + chefs);
+        setFloatingPoints(prev => {
+          const id = Date.now();
+          const xOffset = Math.random() * 40 - 20;
+          return [...prev, {
+            id,
+            xOffset, 
+            isChefPoint: true,
+            value: chefs
+          }];
+        });
       }
     }, 5000);
 
-    return () => clearInterval(interval);
+    // Clean up floating points
+    const cleanup = setInterval(() => {
+      setFloatingPoints(prev => {
+        const now = Date.now();
+        return prev.filter(point => now - point.id < 1000);
+      });
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(cleanup);
+    };
   }, [chefs]);
+
+
+  
 
   const handleJarClick = () => {
     const pointsToAdd = starterLevel;
-    setPoints(points + pointsToAdd);
-    setAllTimePoints(allTimePoints + pointsToAdd);
+    setPoints(prevPoints => prevPoints + pointsToAdd);
+    setAllTimePoints(prevAllTime => prevAllTime + pointsToAdd);
     setJarState((prevState) => (prevState + 1) % jarImages.length);
     
     const id = Date.now();
@@ -334,7 +345,7 @@ export default function Home() {
       const interval = setInterval(() => {
         if (sourdoughStands > 0) {
           setPoints(prevPoints => prevPoints + 100 * sourdoughStands);
-          setAllTimePoints(allTimePoints + 100 * sourdoughStands);
+          setAllTimePoints(prevPoints => prevPoints  + 100 * sourdoughStands);
         }
       }, 120000); // 5 minutes (300,000 milliseconds)
   
