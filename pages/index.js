@@ -244,7 +244,7 @@ export default function Home() {
 
   // Update the chef cost calculation function
   const calculateChefCost = (currentChefs) => {
-    const cost = Math.floor(50 * Math.pow(1.05, currentChefs));
+    const cost = Math.floor(50 * Math.pow(1.02, currentChefs));
     return Math.min(cost, 10000); // Cap at 10000 points
   };
 
@@ -417,7 +417,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Hire chefs to automatically feed your starter and make points. Each chef costs 5% more than the previous chef (max 10000 points).
+                    Hire chefs to automatically feed your starter and make points. Each chef costs 2% more than the previous chef (max 10000 points).
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -501,7 +501,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Spend 2000 points to make a special cinnamon twist loaf.
+                    Spend 1000 points to make a special cinnamon twist loaf.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -519,18 +519,18 @@ export default function Home() {
 
               <button 
                 onClick={() => {
-                  if (points >= 2000) {
-                    setPoints(points - 2000);
+                  if (points >= 1000) {
+                    setPoints(points - 1000);
                     setCinnamonLoaves(cinnamonLoaves + 1);
                   }
                 }}
-                disabled={points < 2000}
+                disabled={points < 1000}
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors w-full text-center
-                  ${points >= 2000 
+                  ${points >= 1000 
                     ? 'bg-orange-600 text-white hover:bg-orange-700' 
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
               >
-                Make (2000 points)
+                Make (1000 points)
               </button>
             </div>
 
@@ -542,7 +542,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Hiring Managers cost 10000 points. Each manager automatically tries to hire a new chef every 30 seconds if you have enough points (cost doubles with each chef).
+                    Hiring Managers cost 10000 points. Each manager automatically hires a new chef every 30 seconds.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
