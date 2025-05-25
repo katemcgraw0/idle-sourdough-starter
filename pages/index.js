@@ -52,29 +52,48 @@ export default function Home() {
 
   // Load saved state
   const loadSavedState = async (id) => {
-    const { data, error } = await supabase
-      .from('leaderboard')
-      .select('*')
-      .eq('user_id', parseInt(id))
-      .single();
-
-    if (error) {
-      console.error('Error loading saved state:', error);
+    if (!id) {
+      console.error('No ID provided to loadSavedState');
       return;
     }
 
-    if (data) {
-      setPoints(data.points);
-      setAllTimePoints(data.all_time_pts || 0);
-      setChefs(data.chefs);
-      setLoaves(data.loaves);
-      setCinnamonLoaves(data.cinnamon_loaves || 0);
-      setHiringManagers(data.hiring_managers || 0);
-      setBakers(data.bakers || 0);
-      setStarterLevel(data.starter_level);
-      setUsername(data.username);
-      setUserId(data.user_id);
-      setSourdoughStands(data.sourdough_stands || 0);
+    try {
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .eq('user_id', parseInt(id))
+        .single();
+
+      if (error) {
+        console.error('Error loading saved state:', error);
+        return;
+      }
+
+      if (!data) {
+        console.error('No data found for ID:', id);
+        return;
+      }
+
+      // Log the data we're about to load
+      console.log('Loading saved state:', data);
+
+      // Only update state if we have valid numbers
+      if (typeof data.points === 'number') setPoints(data.points);
+      if (typeof data.all_time_pts === 'number') setAllTimePoints(data.all_time_pts || 0);
+      if (typeof data.chefs === 'number') setChefs(data.chefs);
+      if (typeof data.loaves === 'number') setLoaves(data.loaves);
+      if (typeof data.cinnamon_loaves === 'number') setCinnamonLoaves(data.cinnamon_loaves || 0);
+      if (typeof data.hiring_managers === 'number') setHiringManagers(data.hiring_managers || 0);
+      if (typeof data.bakers === 'number') setBakers(data.bakers || 0);
+      if (typeof data.starter_level === 'number') setStarterLevel(data.starter_level);
+      if (typeof data.sourdough_stands === 'number') setSourdoughStands(data.sourdough_stands || 0);
+      
+      // Only update username and userId if they exist
+      if (data.username) setUsername(data.username);
+      if (data.user_id) setUserId(data.user_id);
+
+    } catch (error) {
+      console.error('Unexpected error in loadSavedState:', error);
     }
   };
 
