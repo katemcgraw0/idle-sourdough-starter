@@ -274,29 +274,7 @@ export default function Home() {
   // Update the hiring manager automation
   useEffect(() => {
     const interval = setInterval(() => {
-      if (hiringManagers > 0) {
-        setPoints(prev => {
-          let remainingPoints = prev;
-          let chefsToAdd = 0;
-          
-          // Try to hire as many chefs as we can afford with current managers
-          for (let i = 0; i < hiringManagers; i++) {
-            const nextChefCost = calculateChefCost(chefs + chefsToAdd);
-            if (remainingPoints >= nextChefCost) {
-              remainingPoints -= nextChefCost;
-              chefsToAdd++;
-            } else {
-              break;
-            }
-          }
-
-          if (chefsToAdd > 0) {
-            setChefs(prevChefs => prevChefs + chefsToAdd);
-            return remainingPoints;
-          }
-          return prev;
-        });
-      }
+        setChefs(prevChefs => prevChefs + hiringManagers);
     }, 30000);
 
     return () => clearInterval(interval);
@@ -340,14 +318,14 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [sourdoughStands]);
 
-    // Update useEffect for stand automation to run every other minutes
+    // Update useEffect for stand automation to run minutes
     useEffect(() => {
       const interval = setInterval(() => {
         if (sourdoughStands > 0) {
           setPoints(prevPoints => prevPoints + 100 * sourdoughStands);
           setAllTimePoints(prevPoints => prevPoints  + 100 * sourdoughStands);
         }
-      }, 120000); // 5 minutes (300,000 milliseconds)
+      }, 6000); // 5 minutes (300,000 milliseconds)
   
       return () => clearInterval(interval);
     }, [sourdoughStands]);
@@ -683,7 +661,7 @@ export default function Home() {
                     i
                   </button>
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg z-10">
-                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand increases your level by 1 every minute, and earns 100 points every other minute. Each stand costs 10% more than the previous one.
+                    Open a sourdough stand. Requires managers, bakers, and starter level sacrifice. Each stand increases your level by 1 every minute, and earns 100 points every minute. Each stand costs 10% more than the previous one.
                     <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
