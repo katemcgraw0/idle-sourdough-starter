@@ -115,17 +115,11 @@ export default function Home() {
 
       if (error) throw error;
       
-      // Fetch updated leaderboard
+      // Fetch updated leaderboard - simplified ordering
       const { data: updatedLeaderboard, error: fetchError } = await supabase
         .from('leaderboard')
         .select('*')
-        .order('starter_level', { ascending: false })
-        .order('bakers', { ascending: false })
-        .order('hiring_managers', { ascending: false })
-        .order('cinnamon_loaves', { ascending: false })
-        .order('loaves', { ascending: false })
-        .order('chefs', { ascending: false })
-        .order('points', { ascending: false })
+        .order('all_time_pts', { ascending: false })
         .limit(10);
 
       if (!fetchError && updatedLeaderboard) {
